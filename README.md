@@ -1,0 +1,1 @@
+Proyecto personal para practicar desarrollo backend y frontend paso a paso.

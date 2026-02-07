@@ -1,40 +1,45 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+from pydantic import BaseModel
 
-from .database import engine
-from .models import Base
+from .database import engine, SessionLocal
+from .models import Base, Task
 
-from .database import SessionLocal
-from .models import Task
-
-
-class TaskCreateSchema(BaseModel):
-    title: str
-
+print("🔥 MAIN.PY CARGADO 🔥")
 
 app = FastAPI()
 
+# ⬅️ CORS SIEMPRE VA INMEDIATAMENTE DESPUÉS DE FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 Base.metadata.create_all(bind=engine)
+
+# -------- SCHEMAS --------
+
+class TaskCreateSchema(BaseModel):
+    title: str
 
 class TaskSchema(BaseModel):
     id: int
     title: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Pydantic v2
 
-
-@app.get("/")
-def read_root():
-    return {"mensaje": "Hola, que tal?, Oye Gabriel lo estas haciendo muy bien, sigue asi!"}
+# -------- ROUTES --------
 
 @app.get("/tasks", response_model=List[TaskSchema])
 def get_tasks():
     db = SessionLocal()
     try:
-        tasks = db.query(Task).all()
-        return tasks
+        return db.query(Task).all()
     finally:
         db.close()
 
@@ -49,6 +54,3 @@ def create_task(task: TaskCreateSchema):
         return new_task
     finally:
         db.close()
-
-
-

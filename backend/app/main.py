@@ -1,1 +1,7 @@
-# Punto de entrada de la aplicación
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"mensaje": "Hola mundo 🚀"}

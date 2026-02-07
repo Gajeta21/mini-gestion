@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Tareas</title>
+</head>
+<body>
+
+    <h1>📋 Mis Tareas</h1>
+
+    <ul id="tasks"></ul>
+
+    <input type="text" id="title" placeholder="Nueva tarea">
+    <button onclick="addTask()">Agregar</button>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/tasks";
+
+        async function loadTasks() {
+            const response = await fetch(API_URL);
+            const tasks = await response.json();
+
+            const list = document.getElementById("tasks");
+            list.innerHTML = "";
+
+            tasks.forEach(task => {
+                const li = document.createElement("li");
+                li.textContent = `${task.id} - ${task.title}`;
+                list.appendChild(li);
+            });
+        }
+
+        async function addTask() {
+            const input = document.getElementById("title");
+
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: input.value })
+            });
+
+            input.value = "";
+            loadTasks();
+        }
+
+        loadTasks();
+    </script>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List
 
 from .database import engine
 from .models import Base
@@ -8,18 +9,27 @@ from .database import SessionLocal
 from .models import Task
 
 
+class TaskCreateSchema(BaseModel):
+    title: str
+
+
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
 class TaskSchema(BaseModel):
+    id: int
     title: str
+
+    class Config:
+        orm_mode = True
+
 
 @app.get("/")
 def read_root():
     return {"mensaje": "Hola, que tal?, Oye Gabriel lo estas haciendo muy bien, sigue asi!"}
 
-@app.get("/tasks")
+@app.get("/tasks", response_model=List[TaskSchema])
 def get_tasks():
     db = SessionLocal()
     try:
@@ -28,8 +38,8 @@ def get_tasks():
     finally:
         db.close()
 
-@app.post("/tasks")
-def create_task(task: TaskSchema):
+@app.post("/tasks", response_model=TaskSchema)
+def create_task(task: TaskCreateSchema):
     db = SessionLocal()
     try:
         new_task = Task(title=task.title)
@@ -39,5 +49,6 @@ def create_task(task: TaskSchema):
         return new_task
     finally:
         db.close()
+
 
 
